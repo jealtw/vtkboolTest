@@ -117,18 +117,44 @@ void TestvtkBoolDifference(const char* data0File, const char* data1File, const c
 	SavePolyData(boolResultFile, result);
 }
 
+void TestvtkBoolUnion(const char* data0File, const char* data1File, const char* boolResultFile, bool shouldPreprocessDatas = false)
+{
+	std::cout << data0File << " Union " << data1File << std::endl;
+
+	vtkSmartPointer<vtkPolyData> data0 = ReadSTLData(data0File);
+	vtkSmartPointer<vtkPolyData> data1 = ReadSTLData(data1File);
+
+	if (shouldPreprocessDatas)
+	{
+		data0 = PreprocessData(data0);
+		data1 = PreprocessData(data1);
+	}
+
+	vtkNew<vtkPolyDataBooleanFilter> polyDataBooleanFilter;
+	polyDataBooleanFilter->SetInputData(0, data0);
+	polyDataBooleanFilter->SetInputData(1, data1);
+	polyDataBooleanFilter->SetOperModeToUnion();
+
+	polyDataBooleanFilter->Update();
+	vtkSmartPointer<vtkPolyData> result = polyDataBooleanFilter->GetOutput();
+	SavePolyData(boolResultFile, result);
+}
+
 int main(int argc, char** argv)
 {
-	//Test Case 1 : May Crash,  or get the result of Union instead of Difference Under x64 Debug Mode
+	//Test Case 1 : Union Test, but the result seems to be the result of Difference instead of Union
+	TestvtkBoolUnion("Data0-Union.stl", "Data1-Union.stl", "Data0-Union-Data1.stl");
+
+	//Test Case 2 : May Crash,  or get the result of Union instead of Difference Under x64 Debug Mode
 	TestvtkBoolDifference("Data0-Union.stl", "Data1-Union.stl", "Data0-Difference-Data1.stl");
 
-	////Test Case 2 : Error with message "Contact ends suddenly."
+	////Test Case 3 : Error with message "Contact ends suddenly."
 	//TestvtkBoolDifference("Data3-Crash.stl", "Data4-Crash.stl", "Data3-Difference-Data4.stl", true);
 
-	////Test Case3 : May Crash,  or get the result of Union instead of Difference Under x64 Debug Mode
+	////Test Case 4 : May Crash,  or get the result of Union instead of Difference Under x64 Debug Mode
 	//TestvtkBoolDifference("Data0-Union.stl", "Data4-Crash.stl", "Data0-Difference-Data4.stl");
 
-	////Test Case4 : Error with message "Contact ends suddenly."
+	////Test Case 5 : Error with message "Contact ends suddenly."
 	//TestvtkBoolDifference("Data3-Crash.stl", "Data1-Union.stl", "Data3-Difference-Data1.stl");
 
 
